@@ -32,7 +32,7 @@ func ExampleCanonize() {
 	// Test body data
 }
 
-func ExampleVerify() {
+func ExampleVerifier_Verify() {
 	body := bytes.NewBufferString("{\"id\":\"2686c96868emyj61cgt2ma7vdntg4\",\"plan\":\"low\",\"product\":\"generators\",\"region\":\"aws::us-east-1\",\"user_id\":\"200e7aeg2kf2d6nud8jran3zxnz5j\"}\n")
 	req, _ := http.NewRequest("PUT", "https://127.0.0.1:4567/v1/resources/2686c96868emyj61cgt2ma7vdntg4", body)
 
