@@ -26,6 +26,7 @@ BOOTSTRAP=\
 $(BOOTSTRAP):
 	go get -u $@
 bootstrap: $(BOOTSTRAP)
+	go get -v ./...
 
 .PHONY: bootstrap $(BOOTSTRAP)
 
