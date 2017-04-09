@@ -24,7 +24,7 @@ respond directly, instead of calling your handler.
 Using the included middleware:
 
 ```go
-verifier := signature.NewVerifier(signature.ManifoldKey)
+verifier, _ := signature.NewVerifier(signature.ManifoldKey)
 http.Handle("/v1", verifier.WrapFunc(func (rw http.ResponseWriter, r *http.Request) {
 	// your code goes here.
 }))
@@ -36,8 +36,8 @@ Verifying a request manually:
 body, err := ioutil.ReadAll(req.Body)
 buf := bytes.NewBuffer(body)
 
-verifiier := signature.NewVerifier(signature.ManifoldKey)
-if err := verifiier.Verify(req, buf); err != nil {
+verifier, err := signature.NewVerifier(signature.ManifoldKey)
+if err := verifier.Verify(req, buf); err != nil {
 	// return an error...
 }
 
