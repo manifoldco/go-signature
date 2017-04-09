@@ -36,7 +36,7 @@ Verifying a request manually:
 body, err := ioutil.ReadAll(req.Body)
 buf := bytes.NewBuffer(body)
 
-verifier := signature.NewVerifier(signature.ManifoldKey)
+verifier, err := signature.NewVerifier(signature.ManifoldKey)
 if err := verifier.Verify(req, buf); err != nil {
 	// return an error...
 }
