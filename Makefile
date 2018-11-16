@@ -1,46 +1,53 @@
-LINTERS=\
+LINTERS=$(shell grep "// lint" tools.go | awk '{gsub(/\"/, "", $$1); print $$1}' | awk -F / '{print $$NF}') \
 	gofmt \
-	golint \
-	gosimple \
-	vet \
-	misspell \
-	ineffassign \
-	deadcode
+	vet
 
 ci: $(LINTERS) test
 
 .PHONY: ci
 
 #################################################
-# Bootstrapping for base golang package deps
+# Bootstrapping for base golang package and tool deps
 #################################################
 
-BOOTSTRAP=\
-	github.com/golang/lint/golint \
-	honnef.co/go/simple/cmd/gosimple \
-	github.com/client9/misspell/cmd/misspell \
-	github.com/gordonklaus/ineffassign \
-	github.com/tsenart/deadcode \
-	github.com/alecthomas/gometalinter
+CMD_PKGS=$(shell grep '	"' tools.go | awk -F '"' '{print $$2}')
 
-$(BOOTSTRAP):
-	go get -u $@
-bootstrap: $(BOOTSTRAP)
-	go get -v ./...
+define VENDOR_BIN_TMPL
+vendor/bin/$(notdir $(1)): vendor/$(1) | vendor
+	go build -a -o $$@ ./vendor/$(1)
+VENDOR_BINS += vendor/bin/$(notdir $(1))
+vendor/$(1): go.sum
+	GO111MODULE=on go mod vendor
+endef
 
-.PHONY: bootstrap $(BOOTSTRAP)
+$(foreach cmd_pkg,$(CMD_PKGS),$(eval $(call VENDOR_BIN_TMPL,$(cmd_pkg))))
+
+$(patsubst %,%-bin,$(filter-out gofmt vet,$(LINTERS))): %-bin: vendor/bin/%
+gofmt-bin vet-bin:
+
+vendor: go.sum
+	GO111MODULE=on go mod vendor
+
+mod-update:
+	GO111MODULE=on go get -u -m
+	GO111MODULE=on go mod tidy
+
+mod-tidy:
+	GO111MODULE=on go mod tidy
+
+.PHONY: $(CMD_PKGS)
+.PHONY: mod-update mod-tidy
 
 #################################################
 # Test and linting
 #################################################
 
-test:
-	@CGO_ENABLED=0 go test -v ./...
+test: vendor
+	@$(TEST_ENV) CGO_ENABLED=0 go test $$(go list ./... | grep -v generated)
 
-METALINT=gometalinter --tests --disable-all --vendor --deadline=5m -s data \
-	 ./... --enable
-
-$(LINTERS):
-	$(METALINT) $@
+$(LINTERS): %: vendor/bin/gometalinter %-bin vendor
+	PATH=`pwd`/vendor/bin:$$PATH gometalinter --tests --disable-all --vendor \
+		--deadline=5m -s data --skip generated --enable $@ ./...
 
 .PHONY: $(LINTERS) test
+.PHONY: cover all-cover.txt
