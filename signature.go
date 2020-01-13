@@ -80,7 +80,9 @@ func (e *Error) Respond(rw http.ResponseWriter) {
 	rw.Header().Set("Content-Length", strconv.Itoa(len(b)))
 	rw.WriteHeader(e.Code)
 
-	rw.Write(b)
+	if _, err = rw.Write(b); err != nil {
+		panic("Error while writing error response!")
+	}
 }
 
 // Signature represents a Signature of an HTTP request

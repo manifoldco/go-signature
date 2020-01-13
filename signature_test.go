@@ -112,7 +112,7 @@ func TestWrap(t *testing.T) {
 			t.Error("Wrong status code returned")
 		}
 
-		if string(rw.Body.Bytes()) != `{"message":"Request was not signed by included Public Key"}` {
+		if rw.Body.String() != `{"message":"Request was not signed by included Public Key"}` {
 			t.Error("Bad error message returned")
 		}
 	})
@@ -142,7 +142,7 @@ func TestWrap(t *testing.T) {
 			t.Error("Wrong status code returned")
 		}
 
-		if string(rw.Body.Bytes()) != `{"message":"Request time skew is too great"}` {
+		if rw.Body.String() != `{"message":"Request time skew is too great"}` {
 			t.Error("Bad error message returned")
 		}
 	})
